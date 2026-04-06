@@ -90,7 +90,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "\"Ama la vida que tienes para poder\nvivir la vida que amas.\"",
+                text = "\"Cree en vos pelao,\nvos podés, soñá en grande.\"",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontStyle = FontStyle.Italic,
                     fontWeight = FontWeight.Light,
@@ -99,15 +99,6 @@ fun SplashScreen(
                 color = textColor.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 36.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "— Bob Marley",
-                style = MaterialTheme.typography.labelSmall,
-                color = accentColor.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.weight(1f))

@@ -13,9 +13,6 @@ interface WeightEntryDao {
     @Query("SELECT * FROM weight_entries ORDER BY date DESC")
     fun getAll(): Flow<List<WeightEntryEntity>>
 
-    @Query("SELECT * FROM weight_entries ORDER BY date DESC LIMIT 1")
-    suspend fun getLatest(): WeightEntryEntity?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entry: WeightEntryEntity): Long
 

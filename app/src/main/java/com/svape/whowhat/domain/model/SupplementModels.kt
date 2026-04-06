@@ -10,9 +10,3 @@ data class SupplementLog(
     val proteinTaken: Boolean?,
     val notes: String = ""
 )
-
-data class SupplementStreak(
-    val creatineStreakDays: Int,
-    val totalDaysLogged: Int,
-    val creatineCompliancePercent: Float
-)

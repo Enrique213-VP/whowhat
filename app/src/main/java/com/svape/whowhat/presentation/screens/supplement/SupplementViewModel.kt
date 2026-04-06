@@ -2,8 +2,8 @@ package com.svape.whowhat.presentation.screens.supplement
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.svape.whowhat.domain.model.SupplementLog
 import com.svape.whowhat.domain.usecase.supplement.GetAllSupplementLogsUseCase
-import com.svape.whowhat.domain.usecase.supplement.GetOrCreateTodayLogUseCase
 import com.svape.whowhat.domain.usecase.supplement.GetSupplementStreakUseCase
 import com.svape.whowhat.domain.usecase.supplement.LogSupplementUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,11 +13,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import javax.inject.Inject
 
 @HiltViewModel
 class SupplementViewModel @Inject constructor(
-    private val getOrCreateTodayLogUseCase: GetOrCreateTodayLogUseCase,
     private val logSupplementUseCase: LogSupplementUseCase,
     private val getAllSupplementLogsUseCase: GetAllSupplementLogsUseCase,
     private val getSupplementStreakUseCase: GetSupplementStreakUseCase
@@ -27,79 +30,113 @@ class SupplementViewModel @Inject constructor(
     val uiState: StateFlow<SupplementUiState> = _uiState.asStateFlow()
 
     init {
-        loadTodayLog()
-        loadLogsAndStreak()
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        _uiState.value = _uiState.value.copy(selectedDate = today)
+        loadData()
     }
 
-    private fun loadTodayLog() {
+    private fun loadData() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            runCatching { getOrCreateTodayLogUseCase() }
-                .onSuccess { log ->
-                    _uiState.value = _uiState.value.copy(
-                        todayLog = log,
-                        isLoading = false
-                    )
-                }
-                .onFailure { e ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = e.message
-                    )
-                }
-        }
-    }
-
-    private fun loadLogsAndStreak() {
-        viewModelScope.launch {
             combine(
                 getAllSupplementLogsUseCase(),
                 getSupplementStreakUseCase()
             ) { logs, streak ->
+                val selected = _uiState.value.selectedDate
+                val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+                val logForSelected = logs.find { it.date == selected }
                 _uiState.value.copy(
                     allLogs = logs,
-                    streak = streak
+                    streak = streak,
+                    todayLog = logs.find { it.date == today },
+                    selectedDateLog = logForSelected,
+                    isLoading = false
                 )
             }.catch { e ->
-                _uiState.value = _uiState.value.copy(errorMessage = e.message)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = e.message
+                )
             }.collect { state ->
                 _uiState.value = state
             }
         }
     }
 
-    fun toggleCreatine(taken: Boolean) {
-        val log = _uiState.value.todayLog ?: return
+    fun selectDate(date: LocalDate) {
+        val logForDate = _uiState.value.allLogs.find { it.date == date }
+        _uiState.value = _uiState.value.copy(
+            selectedDate = date,
+            selectedDateLog = logForDate
+        )
+    }
+
+    fun createLogForDate() {
+        val date = _uiState.value.selectedDate ?: return
+        val newLog = SupplementLog(
+            date = date,
+            creatineTaken = false,
+            proteinTaken = null,
+            proteinAvailable = false
+        )
         viewModelScope.launch {
-            val updated = log.copy(creatineTaken = taken)
-            logSupplementUseCase(updated)
-            _uiState.value = _uiState.value.copy(todayLog = updated)
+            logSupplementUseCase(newLog)
+            _uiState.value = _uiState.value.copy(selectedDateLog = newLog)
         }
     }
 
-    fun toggleProteinAvailable(available: Boolean) {
-        val log = _uiState.value.todayLog ?: return
-        viewModelScope.launch {
-            val updated = log.copy(
-                proteinAvailable = available,
-                proteinTaken = if (!available) null else log.proteinTaken
+    fun toggleCreatine() {
+        val log = _uiState.value.selectedDateLog ?: return
+        saveLog(log.copy(creatineTaken = !log.creatineTaken))
+    }
+
+    fun toggleProteinAvailable() {
+        val log = _uiState.value.selectedDateLog ?: return
+        saveLog(
+            log.copy(
+                proteinAvailable = !log.proteinAvailable,
+                proteinTaken = if (log.proteinAvailable) null else log.proteinTaken
             )
-            logSupplementUseCase(updated)
-            _uiState.value = _uiState.value.copy(todayLog = updated)
-        }
+        )
     }
 
-    fun toggleProtein(taken: Boolean) {
-        val log = _uiState.value.todayLog ?: return
+    fun toggleProtein() {
+        val log = _uiState.value.selectedDateLog ?: return
         if (!log.proteinAvailable) return
+        saveLog(log.copy(proteinTaken = !(log.proteinTaken ?: false)))
+    }
+
+    fun saveEditedLog(creatine: Boolean, proteinAvailable: Boolean, proteinTaken: Boolean?) {
+        val log = _uiState.value.selectedDateLog ?: return
+        saveLog(
+            log.copy(
+                creatineTaken = creatine,
+                proteinAvailable = proteinAvailable,
+                proteinTaken = if (proteinAvailable) proteinTaken else null
+            )
+        )
+        _uiState.value = _uiState.value.copy(showEditLogDialog = false)
+    }
+
+    private fun saveLog(updated: SupplementLog) {
         viewModelScope.launch {
-            val updated = log.copy(proteinTaken = taken)
             logSupplementUseCase(updated)
-            _uiState.value = _uiState.value.copy(todayLog = updated)
+            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            _uiState.value = _uiState.value.copy(
+                selectedDateLog = updated,
+                todayLog = if (updated.date == today) updated else _uiState.value.todayLog
+            )
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
-    }
+    fun showDatePicker() { _uiState.value = _uiState.value.copy(showDatePicker = true) }
+    fun dismissDatePicker() { _uiState.value = _uiState.value.copy(showDatePicker = false) }
+    fun showEditLogDialog() { _uiState.value = _uiState.value.copy(showEditLogDialog = true) }
+    fun dismissEditLogDialog() { _uiState.value = _uiState.value.copy(showEditLogDialog = false) }
+
+    fun datesWithLogs(): Set<LocalDate> = _uiState.value.allLogs
+        .filter { it.creatineTaken }
+        .map { it.date }.toSet()
+
+    fun clearError() { _uiState.value = _uiState.value.copy(errorMessage = null) }
 }

@@ -8,7 +8,6 @@ class SaveWorkoutSetUseCase @Inject constructor(
     private val repository: WorkoutRepository
 ) {
     suspend operator fun invoke(set: WorkoutSet): Result<Long> = runCatching {
-        require(set.reps > 0) { "Las repeticiones deben ser mayor a 0" }
         require(set.weightLbs >= 0) { "El peso no puede ser negativo" }
         repository.insertSet(set)
     }

@@ -23,10 +23,6 @@ class SupplementRepositoryImpl @Inject constructor(
         dao.insert(log.toEntity())
     }
 
-    override suspend fun deleteLog(logId: Long) =
-        dao.deleteById(logId)
-
-    // region Mappers
     private fun SupplementLogEntity.toDomain() = SupplementLog(
         id = id,
         date = LocalDate.parse(date),
@@ -44,5 +40,4 @@ class SupplementRepositoryImpl @Inject constructor(
         proteinTaken = proteinTaken,
         notes = notes
     )
-    // endregion
 }

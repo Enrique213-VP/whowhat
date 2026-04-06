@@ -10,6 +10,7 @@ import com.svape.whowhat.data.local.dao.SupplementLogDao
 import com.svape.whowhat.data.local.dao.WeightEntryDao
 import com.svape.whowhat.data.local.dao.WorkoutSessionDao
 import com.svape.whowhat.data.local.dao.WorkoutSetDao
+import com.svape.whowhat.data.local.dao.WorkoutTemplateDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,11 +25,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "whowhat_db"
-        ).build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "whowhat.db")
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .build()
 
     @Provides
     fun provideExerciseDao(db: AppDatabase): ExerciseDao = db.exerciseDao()

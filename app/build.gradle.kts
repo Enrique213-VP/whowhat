@@ -13,8 +13,8 @@ android {
         applicationId = "com.svape.whowhat"
         minSdk = 25
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 100
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -38,7 +38,6 @@ android {
     }
 }
 
-// Room schema export — nivel raíz del archivo
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
@@ -76,4 +75,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 }

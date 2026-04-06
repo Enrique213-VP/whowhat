@@ -17,7 +17,6 @@ class SkinCareRepositoryImpl @Inject constructor(
     private val productDao: SkinCareProductDao
 ) : SkinCareRepository {
 
-    // region Log
     override fun getAllLogs(): Flow<List<SkinCareLog>> =
         logDao.getAll().map { list -> list.map { it.toDomain() } }
 
@@ -27,9 +26,7 @@ class SkinCareRepositoryImpl @Inject constructor(
     override suspend fun insertOrUpdateLog(log: SkinCareLog) {
         logDao.insert(log.toEntity())
     }
-    // endregion
 
-    // region Product
     override fun getAllProducts(): Flow<List<SkinCareProduct>> =
         productDao.getAll().map { list -> list.map { it.toDomain() } }
 
@@ -41,9 +38,7 @@ class SkinCareRepositoryImpl @Inject constructor(
 
     override suspend fun deleteProduct(productId: Long) =
         productDao.deleteById(productId)
-    // endregion
 
-    // region Mappers
     private fun SkinCareLogEntity.toDomain() = SkinCareLog(
         id = id,
         date = LocalDate.parse(date),
@@ -71,5 +66,4 @@ class SkinCareRepositoryImpl @Inject constructor(
         inStock = inStock,
         needsToBuy = needsToBuy
     )
-    // endregion
 }

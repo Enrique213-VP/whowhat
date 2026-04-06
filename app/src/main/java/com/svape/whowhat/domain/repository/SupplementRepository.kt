@@ -8,5 +8,4 @@ interface SupplementRepository {
     fun getAllLogs(): Flow<List<SupplementLog>>
     suspend fun getLogByDate(date: LocalDate): SupplementLog?
     suspend fun insertOrUpdateLog(log: SupplementLog)
-    suspend fun deleteLog(logId: Long)
 }

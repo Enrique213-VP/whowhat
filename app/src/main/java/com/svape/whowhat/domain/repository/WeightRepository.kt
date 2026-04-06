@@ -8,5 +8,4 @@ interface WeightRepository {
     suspend fun insertEntry(entry: WeightEntry): Long
     suspend fun updateEntry(entry: WeightEntry)
     suspend fun deleteEntry(entryId: Long)
-    suspend fun getLatestEntry(): WeightEntry?
 }

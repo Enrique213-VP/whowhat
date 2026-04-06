@@ -25,10 +25,6 @@ class WeightRepositoryImpl @Inject constructor(
     override suspend fun deleteEntry(entryId: Long) =
         dao.deleteById(entryId)
 
-    override suspend fun getLatestEntry(): WeightEntry? =
-        dao.getLatest()?.toDomain()
-
-    // region Mappers
     private fun WeightEntryEntity.toDomain() = WeightEntry(
         id = id,
         weightKg = weightKg,
@@ -42,5 +38,4 @@ class WeightRepositoryImpl @Inject constructor(
         date = date.toString(),
         notes = notes
     )
-    // endregion
 }

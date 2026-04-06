@@ -21,7 +21,6 @@ class WorkoutRepositoryImpl @Inject constructor(
     private val setDao: WorkoutSetDao
 ) : WorkoutRepository {
 
-    // region Exercise
     override fun getAllExercises(): Flow<List<Exercise>> =
         exerciseDao.getAll().map { list -> list.map { it.toDomain() } }
 
@@ -33,9 +32,7 @@ class WorkoutRepositoryImpl @Inject constructor(
 
     override suspend fun deleteExercise(exerciseId: Long) =
         exerciseDao.deleteById(exerciseId)
-    // endregion
 
-    // region Session
     override fun getAllSessions(): Flow<List<WorkoutSession>> =
         sessionDao.getAll().map { list -> list.map { it.toDomain() } }
 
@@ -44,9 +41,7 @@ class WorkoutRepositoryImpl @Inject constructor(
 
     override suspend fun deleteSession(sessionId: Long) =
         sessionDao.deleteById(sessionId)
-    // endregion
 
-    // region Set
     override fun getSetsBySession(sessionId: Long): Flow<List<WorkoutSet>> =
         setDao.getBySession(sessionId).map { list -> list.map { it.toDomain() } }
 
@@ -56,46 +51,32 @@ class WorkoutRepositoryImpl @Inject constructor(
     override suspend fun insertSet(set: WorkoutSet): Long =
         setDao.insert(set.toEntity())
 
+    override suspend fun updateSet(set: WorkoutSet) =
+        setDao.update(set.toEntity())
+
     override suspend fun deleteSet(setId: Long) =
         setDao.deleteById(setId)
-    // endregion
 
-    // region Mappers
-    private fun ExerciseEntity.toDomain() = Exercise(id, name, muscleGroup, notes)
-    private fun Exercise.toEntity() = ExerciseEntity(id, name, muscleGroup, notes)
+    private fun ExerciseEntity.toDomain() = Exercise(id, name, muscleGroup)
+    private fun Exercise.toEntity() = ExerciseEntity(id, name, muscleGroup)
 
     private fun WorkoutSessionEntity.toDomain() = WorkoutSession(
-        id = id,
-        name = name,
-        date = LocalDate.parse(date),
-        notes = notes
+        id = id, name = name, date = LocalDate.parse(date), notes = notes
     )
+
     private fun WorkoutSession.toEntity() = WorkoutSessionEntity(
-        id = id,
-        name = name,
-        date = date.toString(),
-        notes = notes
+        id = id, name = name, date = date.toString(), notes = notes
     )
 
     private fun WorkoutSetEntity.toDomain() = WorkoutSet(
-        id = id,
-        sessionId = sessionId,
-        exerciseId = exerciseId,
-        exerciseName = exerciseName,
-        setNumber = setNumber,
-        reps = reps,
-        weightLbs = weightLbs,
-        date = LocalDate.parse(date)
+        id = id, sessionId = sessionId, exerciseId = exerciseId,
+        exerciseName = exerciseName, setNumber = setNumber,
+        reps = reps, weightLbs = weightLbs, date = LocalDate.parse(date)
     )
+
     private fun WorkoutSet.toEntity() = WorkoutSetEntity(
-        id = id,
-        sessionId = sessionId,
-        exerciseId = exerciseId,
-        exerciseName = exerciseName,
-        setNumber = setNumber,
-        reps = reps,
-        weightLbs = weightLbs,
-        date = date.toString()
+        id = id, sessionId = sessionId, exerciseId = exerciseId,
+        exerciseName = exerciseName, setNumber = setNumber,
+        reps = reps, weightLbs = weightLbs, date = date.toString()
     )
-    // endregion
 }

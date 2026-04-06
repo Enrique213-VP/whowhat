@@ -17,7 +17,4 @@ interface SupplementLogDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(log: SupplementLogEntity): Long
-
-    @Query("DELETE FROM supplement_logs WHERE id = :id")
-    suspend fun deleteById(id: Long)
 }
